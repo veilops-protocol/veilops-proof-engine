@@ -137,15 +137,21 @@ export function publicInputsOf(rec: PublicRecord): PublicInputs {
   };
 }
 
+function tryDecodeProof(b64: string): { ok: true; proof: PolicyProof } | { ok: false } {
+  try { return { ok: true, proof: decodeProof(b64) }; } catch { return { ok: false }; }
+}
+
 export interface RecordVerification extends VerifyReport { attestation: boolean; proofIdMatches: boolean }
 
 /** Full verification of a published record: proof, proof id binding and operator signature. */
 export function verifyRecord(rec: PublicRecord): RecordVerification {
   const t0 = now();
-  let proof: PolicyProof | null = null;
-  try { proof = decodeProof(rec.proof); } catch { /* malformed */ }
-  const base = proof ? verifyPolicy(publicInputsOf(rec), proof) : { valid: false, checks: [{ name: 'decode', passed: false, detail: 'proof could not be decoded' }], verifyMs: 0 };
-  const proofIdMatches = !!proof && proofIdOf(proof) === rec.proofId;
+  const decoded = tryDecodeProof(rec.proof);
+  // A proof that cannot be decoded is reported as an invalid record; there is no path that skips verification.
+  const base: VerifyReport = decoded.ok
+    ? verifyPolicy(publicInputsOf(rec), decoded.proof)
+    : { valid: false, checks: [{ name: 'decode', passed: false, detail: 'proof could not be decoded' }], verifyMs: 0 };
+  const proofIdMatches = decoded.ok && proofIdOf(decoded.proof) === rec.proofId;
   const attestation = verifyAttestation(rec);
   const checks = [
     ...base.checks,
