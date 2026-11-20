@@ -124,7 +124,8 @@ export function attest(record: Unsigned, key: SigningKey): PublicRecord {
 export function verifyAttestation(record: PublicRecord): boolean {
   try {
     const { attestation, ...rest } = record;
-    return ed25519.verify(hexToBytes(attestation.signature), signedBytes(rest), hexToBytes(attestation.publicKey));
+    // Strict RFC 8032 verification (zip215: false): rejects non-canonical encodings, matching the independent verifier.
+    return ed25519.verify(hexToBytes(attestation.signature), signedBytes(rest), hexToBytes(attestation.publicKey), { zip215: false });
   } catch {
     return false;
   }
@@ -146,10 +147,14 @@ export interface RecordVerification extends VerifyReport { attestation: boolean;
 /** Full verification of a published record: proof, proof id binding and operator signature. */
 export function verifyRecord(rec: PublicRecord): RecordVerification {
   const t0 = now();
-  const decoded = tryDecodeProof(rec.proof);
+  const decoded = tryDecodeProof(rec?.proof);
   // A proof that cannot be decoded is reported as an invalid record; there is no path that skips verification.
-  const base: VerifyReport = decoded.ok
-    ? verifyPolicy(publicInputsOf(rec), decoded.proof)
+  let pi: PublicInputs | null = null;
+  try { pi = publicInputsOf(rec); } catch { pi = null; }
+  const base: VerifyReport = !pi
+    ? { valid: false, checks: [{ name: 'record', passed: false, detail: 'record is malformed' }], verifyMs: 0 }
+    : decoded.ok
+    ? verifyPolicy(pi, decoded.proof)
     : { valid: false, checks: [{ name: 'decode', passed: false, detail: 'proof could not be decoded' }], verifyMs: 0 };
   const proofIdMatches = decoded.ok && proofIdOf(decoded.proof) === rec.proofId;
   const attestation = verifyAttestation(rec);
