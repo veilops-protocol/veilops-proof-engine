@@ -60,7 +60,7 @@ const u32be = (i: number) => { const b = new Uint8Array(4); new DataView(b.buffe
 
 export function validatePublicInputsV2(pi: PublicInputsV2): void {
   for (const k of ['operationId', 'policyId', 'asset', 'category'] as const) {
-    if (!TEXT_FIELD.test(pi[k])) throw new Error(`${k} must match [A-Za-z0-9_.-]{1,64}`);
+    if (typeof pi[k] !== 'string' || !TEXT_FIELD.test(pi[k])) throw new Error(`${k} must match [A-Za-z0-9_.-]{1,64}`);
   }
   if (!Number.isInteger(pi.rangeBits) || pi.rangeBits < 1 || pi.rangeBits > V2_MAX_BITS) throw new Error(`rangeBits must be 1..${V2_MAX_BITS}`);
   if (!Number.isSafeInteger(pi.maxAmount) || pi.maxAmount < 0 || pi.maxAmount >= 2 ** pi.rangeBits) throw new Error('maxAmount must be in [0, 2^rangeBits)');

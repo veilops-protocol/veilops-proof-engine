@@ -1,6 +1,6 @@
 {
   "name": "@veilops/proof-engine",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "license": "Apache-2.0",
   "type": "module",
   "main": "src/index.ts",
@@ -12,6 +12,6 @@
   "dependencies": {
     "@noble/curves": "2.4.0",
     "@noble/hashes": "2.4.0",
-    "@veilops/shared": "0.1.1"
+    "@veilops/shared": "0.2.0"
   }
 }
