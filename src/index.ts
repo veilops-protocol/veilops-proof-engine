@@ -167,3 +167,10 @@ export function verifyRecord(rec: PublicRecord): RecordVerification {
 }
 
 export { scalarFromHex };
+
+/* ---------------- veilops-range-v2 (on-chain verifiable encoding) ---------------- */
+export {
+  PROOF_SYSTEM_V2, provePolicyV2, verifyPolicyV2, encodeProofV2, decodeProofV2, proofIdV2, transcriptContextV2, ctxHashV2,
+  bitChallengeV2, validatePublicInputsV2, scalarToLE, scalarFromLE, V2_BIT_BYTES, V2_MAX_BITS,
+  type PublicInputsV2, type PolicyProofV2, type ProverOutputV2,
+} from './v2';
